@@ -1,0 +1,96 @@
+#include <iostream>
+#include <vector>
+#define FAST_IO ios_base::sync_with_stdio(false);cin.tie(0)
+#define MAXN 1000000
+using namespace std;
+
+struct dt{
+	vector<int> lft;		//  lft[i]	-> [M-1-i, M-1]
+	vector<int> rgt;		// rgt[i] -> [M, M+i]
+};
+
+int n, P, Q;
+int A[MAXN];
+int B[312502];
+dt ST[4*MAXN];
+
+
+void build(int node=1, int l=0, int r=n-1)
+{
+	if(l == r)
+	{
+		ST[node].rgt.assign(1, A[l]);
+	}
+	else
+	{
+		int m = (l+r)/2;
+		ST[node].rgt.resize(r-m+1);
+		ST[node].lft.resize(m-l);
+
+		ST[node].rgt[0] = A[m];
+		for(int i=m+1,j=1;i<=r;i++,j++)
+			ST[node].rgt[j] =  ((long long)ST[node].rgt[j-1] * A[i])%P;
+
+		if(m > l)
+		{
+			ST[node].lft[0] = A[m-1];
+			for(int i=m-2,j=1;i>=l;i--,j++)
+			ST[node].lft[j] =  ((long long)ST[node].lft[j-1] * A[i])%P;
+		}
+
+		build(2*node, l, m);
+		build(2*node+1, m+1, r);
+	}
+}
+
+int query(int x, int y, int node=1, int l=0, int r=n-1)
+{
+	int m = (l+r)/2;
+	if(x <= m && m <= y)
+	{
+		long long ans = ST[node].rgt[y-m];
+		if(x < m)
+		{
+			ans *= ST[node].lft[m - 1 - x];
+			ans %= P;
+		}
+		return ans;
+	}
+	else if(l <= x && y <= m)
+		return query(x, y, 2*node, l, m);
+	else
+		return query(x, y, 2*node+1, m+1, r);
+}
+
+int main()
+{
+	FAST_IO;
+	int t; cin>>t;
+	while(t--)
+	{
+		cin>>n>>P>>Q;
+		for(int i=0;i<n;i++) cin>>A[i];
+		for(int i=0, x = (Q>>6) + 2;i<x;i++) cin>>B[i];
+
+		build();
+
+		int x = 0, l, r;
+		for(int i=0;i<Q;i++)
+		{
+			if(i%64 == 0){
+				l = (B[i>>6] + x) % n;
+				r = (B[(i>>6) + 1] + x) % n;
+			}
+			else{
+				l = (l + x) % n;
+				r = (r + x) % n;
+			}
+			if(l > r) swap(l, r);
+
+			x = (query(l, r) + 1) % P;
+		}
+
+		cout<<x<<'\n';
+	}
+	return 0;
+}

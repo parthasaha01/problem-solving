@@ -1,0 +1,98 @@
+#include<cstdio>
+#include<iostream>
+#include<vector>
+#include<queue>
+using namespace std;
+#define mx 100
+vector<int>adj[mx];
+int cost[mx][mx];
+bool vis[mx];
+struct edge
+{
+    int u,v,w;
+
+    edge(int x, int y, int c)
+    {
+        u=x;
+        v=y;
+        w=c;
+    }
+    bool operator < (const edge& p) const
+    {
+        return p.w < w;
+    }
+
+};
+priority_queue<edge>pq;
+queue<edge>Q;
+int primsMST(int node, int src)
+{
+    int Mincost=0;
+
+    for(int i=0; i<adj[src].size(); i++)
+    {
+        int v = adj[src][i];
+        pq.push(edge(src,v,cost[src][v]));
+    }
+
+    for(int j=1; j<=node-1; j++)
+    {
+        label:
+        edge top=pq.top();
+        pq.pop();
+        if(vis[top.u]==true && vis[top.v]==true)    // this create a cycle
+        {
+            pq.pop();
+            goto label;
+        }
+        vis[top.u]=true;
+        vis[top.v]=true;
+        Q.push(top);
+        Mincost+=top.w;
+        int u = top.v;
+        for(int i=0; i<adj[u].size(); i++)
+        {
+            int v = adj[u][i];
+
+            if(vis[v]==false)
+            {
+                pq.push(edge(u,v,cost[u][v]));
+            }
+        }
+
+    }
+
+    return Mincost;
+}
+int main()
+{
+    int node,edge,u,v,w,mincst;
+
+    cin >> node >> edge;
+
+    for(int i=0; i<edge; i++)
+    {
+        cin >> u >> v >> w; // bidirectional graph
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+        cost[u][v]=w;
+        cost[v][u]=w;
+    }
+
+    mincst=primsMST(node, 1);
+
+    cout << endl << "Minimum Spanning Tree:" << endl << endl;
+    cout << " Edges " << "  Weight" << endl;
+
+    for(int i=1; i<=node-1; i++)
+    {
+        edge top=Q.front();
+        Q.pop();
+        printf("%2d  %2d   %3d\n\n",top.u,top.v,top.w);
+        //cout << u << "  " << v << "     " << w << endl;
+    }
+
+    cout << endl << "Total Minimum Cost: " << mincst << endl;
+
+    return 0;
+}
