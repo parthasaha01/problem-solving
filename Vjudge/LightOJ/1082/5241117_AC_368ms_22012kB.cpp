@@ -1,0 +1,56 @@
+#include<bits/stdc++.h>
+using namespace std;
+#define maxx 100005
+long int st[maxx][25],arr[maxx];
+void create_st(long int N)
+{
+    for(long int i=0;i<N;i++){
+        st[i][0]=i;//position of minimum value's from position i to 2^0=1 length
+    }
+
+    for(long int j=1; (1<<j)<N; j++)
+    {
+        for(long int i=0; i+(1<<j)-1<N; i++)
+        {
+
+            if(arr[st[i][j-1]]<=arr[st[i+(1<<(j-1))][j-1]])
+                st[i][j]=st[i][j-1];
+            else st[i][j]=st[i+(1<<(j-1))][j-1];
+        }
+    }
+}
+long int RMQ(long int i, long int j)
+{
+    int k=(int)log2(j-i+1);
+    long int x=st[i][k];
+    long int y=st[j-(1<<k)+1][k];
+    return min(arr[x],arr[y]);
+}
+int main()
+{
+    long int T,N,Q;
+
+    scanf("%ld",&T);
+
+    for(int test=1; test<=T; test++)
+    {
+        scanf("%ld %ld",&N,&Q);
+
+        for(long int i=0; i<N; i++){
+            scanf("%ld",&arr[i]);
+        }
+
+        create_st(N);
+
+        printf("Case %d:\n",test);
+        for(long int k=0; k<Q; k++)
+        {
+            long int i,j;
+            scanf("%ld %ld",&i,&j);
+            long int res=RMQ(i-1,j-1);
+            printf("%ld\n",res);
+        }
+    }
+
+    return 0;
+}
